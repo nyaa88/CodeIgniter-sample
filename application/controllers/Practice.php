@@ -161,10 +161,9 @@ class Practice extends CI_Controller{
 	/* ----------------------ログインここまで----------------------- */
 
 	public function cart(){
-		$this->load->library('form_validation'); //form validationライブラリをロード
-		$this->load->helper('security'); //これも読み込まないとxss_cleanが使えないっぽい？
+		$this->load->library('form_validation');
 
-		$this->form_validation->set_rules("num", "個数", "required|trim|xss_clean|numeric"); // validate_credentialsというメソッドを呼び出します。
+		$this->form_validation->set_rules("num", "個数", "required|trim|is_natural"); //必須・空白の取り除き・0を含む正の自然数
 
 		$olddata = $this->session->all_userdata();
 		$data['olddata'] = $olddata; //前のデータ比較用

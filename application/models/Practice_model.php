@@ -30,14 +30,12 @@ class Practice_model extends CI_Model{
 		return $query->row_array();
 	}
 
-	public function get_maker(){ //メーカー一覧
-
+	public function get_maker(){ //indexで表示するメーカー一覧
 		$query = $this->db->get('maker');
-
 		return $query->result_array();
-
 	}
-	public function get_maker2($id = FALSE){ //メーカー別の商品一覧
+
+	public function get_maker2($id = FALSE){ //「practice/maker/$id」で表示するメーカー別の商品一覧
 		$this->db->select('maker.id mak_id,maker.name mak_name,product.id,product.name,product.price,product.internal_capacity');
 		$this->db->from('maker');
 		$cond = 'maker.id = product.maker_id';
@@ -45,20 +43,7 @@ class Practice_model extends CI_Model{
 		$this->db->where_in('maker.id',$id);
 
 		$query = $this->db->get();
-
 		$product = $query->result_array();
-
-
-// 		var_dump($product);
-
-// 		foreach ($product as $value){
-// 			echo "1";
-// 			var_dump($value);
-// 			$re_pro;
-// 		}
-
-// 		var_dump($product);
-
 		return $product;
 	}
 
@@ -74,29 +59,24 @@ class Practice_model extends CI_Model{
 		}
 	}
 
-	public function cart_product($id_arr){ //DBから商品情報を取得
+	public function cart_product($id_arr){ //DBからカートの商品情報を取得
 		$this->db->select('id,name,price');
 		$this->db->from('product');
-
-		$id = "";
-		foreach ($id_arr as $key => $value){
-			$id[] .= $key;
-		}
- 		//var_dump($id);
-
+			$id = "";
+			foreach ($id_arr as $key => $value){ // [id]=個数の配列から、whereで使えるように[0]=>id [1]=>idの形にする
+				$id[] .= $key;
+			}
 		$this->db->where_in('id',($id));
-
 		$query = $this->db->get();
-
-		$product =  $query->result_array();
+		$product =  $query->result_array(); //[0]=>array{[id]=>"" [name]=>"" [price]=>""}[1]=>{～}の形
 
 		foreach ($product as $value){ //取得したデータを使いやすいように加工→controllersで$data['cart'][id][データ]
 			$id = $value['id'];
 			$product[$id] = $value;
 		}
+
 		if(isset($product[0])){ //加工しても[0]が残ってしまうので削除
 			unset($product[0]);
-			//var_dump($product);
 		}
 		return $product;
 	}
@@ -109,13 +89,9 @@ class Practice_model extends CI_Model{
 		}
 
 		if (isset($post_data['cart_submit'])){ //商品ページからの追加
-			//echo "商品ページから";
-			if(isset($olddata['cart'][$post_data['pro_id']])){
-// 				echo "<br>old".$olddata['cart'][$post_data['pro_id']];
-// 				echo "<br>post".$post_data['num'];
+			if(isset($olddata['cart'][$post_data['pro_id']])){ // 追加する商品がすでにカートにあれば数を足す
 				$new_num = $olddata['cart'][$post_data['pro_id']] + $post_data['num'];
-//				echo "<br>new_num".$new_num;
-			}else{
+			}else{ // 初めて追加する商品なら
 				$new_num = $post_data['num'];
 			}
 
@@ -127,9 +103,7 @@ class Practice_model extends CI_Model{
 		}else{ //商品追加以外でのカートの表示
 			if (!isset($post_data['pro_id'])){ //変更ボタンが押されてなければ
 				$re_data['cart'] = $olddata['cart']; // セッションはそのまま
-				//echo "カートの表示";
-			}else{
-				//echo "カートの変更";
+			}else{ //数の変更なら
 				// id でセッション検索、削除
 				$re_data['cart'] = $olddata['cart'];
 				if ($post_data['num'] == 0){ // 個数が0なら項目を削除
@@ -140,20 +114,11 @@ class Practice_model extends CI_Model{
 					$re_data['cart'][$post_data['pro_id']] = $post_data['num'];
 				}
 			}
-
 		}
+
 		if(isset($re_data['cart'][0])){
-		unset($re_data['cart'][0]);
+			unset($re_data['cart'][0]);
 		}
-
-// 			echo '<br>$post_data';
-// 			var_dump($post_data);
-// 			echo "<br>"."olddata";
-// 			var_dump($olddata);
-// 			//echo "<br>"."newdata";
-// 			//var_dump($newdata['cart']);
-// 			echo "<br>"."re_data";
-// 			var_dump($re_data);
 
  			return  $re_data;
 	}
